@@ -25,7 +25,7 @@ logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s
  SALE_CAT, SALE_AMOUNT, SALE_EXPENSE, SALE_REMARK, 
  CONFIRM_EXPORT, CONFIRM_DELETE_BIZ) = range(9)
 
-# Updated MAIN_MENU
+# Updated MAIN_MENU with all 7 options
 MAIN_MENU = [
     ['💰 Add New Sale', '📊 Reports'],
     ['📜 Manage Sales', '⚙️ Add Category'],
@@ -69,7 +69,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔄 Action cancelled.", reply_markup=main_markup)
     return CHOOSING
 
-# --- DELETE BUSINESS LOGIC gg---
+# --- DELETE BUSINESS LOGIC ---
 
 async def start_delete_biz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
