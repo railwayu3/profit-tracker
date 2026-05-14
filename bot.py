@@ -219,20 +219,27 @@ async def view_reports(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(report, parse_mode="Markdown", reply_markup=main_markup)
     return CHOOSING
 
+# --- ADD THIS LOGIC TO YOUR main() FUNCTION ---
+
 def main():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
+    
+    # 1. Create a shared list of handlers for the main menu 
+    # so they can be used both as entry points and as fallbacks.
+    menu_handlers = [
+        MessageHandler(filters.Regex("^💰 Add New Sale$"), start_sale),
+        MessageHandler(filters.Regex("^📊 Reports$"), view_reports),
+        MessageHandler(filters.Regex("^📜 Manage Sales$"), manage_sales),
+        MessageHandler(filters.Regex("^⚙️ Add Category$"), start_add_category),
+        MessageHandler(filters.Regex("^📥 Export Data$"), start_export),
+        MessageHandler(filters.Regex("^❌ Cancel Flow$"), start),
+    ]
+
     conv = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
+        entry_points=[CommandHandler("start", start)] + menu_handlers, # Add here
         states={
             SETUP_BIZ: [MessageHandler(filters.TEXT & ~filters.COMMAND, save_business_name)],
-            CHOOSING: [
-                MessageHandler(filters.Regex("^💰 Add New Sale$"), start_sale),
-                MessageHandler(filters.Regex("^📊 Reports$"), view_reports),
-                MessageHandler(filters.Regex("^📜 Manage Sales$"), manage_sales),
-                MessageHandler(filters.Regex("^⚙️ Add Category$"), start_add_category),
-                MessageHandler(filters.Regex("^📥 Export Data$"), start_export),
-                MessageHandler(filters.Regex("^❌ Cancel Flow$"), start),
-            ],
+            CHOOSING: menu_handlers, # Use the shared list
             ADD_CAT_LATER: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_cat_later)],
             SALE_CAT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sale_amount)],
             SALE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, sale_expense)],
@@ -240,8 +247,11 @@ def main():
             SALE_REMARK: [MessageHandler(filters.TEXT & ~filters.COMMAND, finish_sale)],
             CONFIRM_EXPORT: [MessageHandler(filters.Regex("^(✅ Yes, Export CSV|❌ No, Cancel)$"), handle_export)],
         },
-        fallbacks=[CommandHandler("start", start)],
+        # 2. Add menu_handlers to fallbacks. 
+        # This allows buttons to "break out" of a stuck state.
+        fallbacks=[CommandHandler("start", start)] + menu_handlers, 
     )
+    
     app.add_handler(conv)
     app.add_handler(CallbackQueryHandler(handle_delete_callback)) 
     app.run_polling()
