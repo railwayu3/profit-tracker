@@ -69,7 +69,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔄 Action cancelled.", reply_markup=main_markup)
     return CHOOSING
 
-# --- DELETE BUSINESS LOGIC ---
+# --- DELETE BUSINESS LOGIC gg---
 
 async def start_delete_biz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
