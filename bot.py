@@ -85,13 +85,27 @@ async def start_delete_biz(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_delete_biz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.text == "CONFIRM DELETE":
         user_id = update.message.from_user.id
+        
+        # 1. Delete all transactions associated with this user
+        supabase.table("transactions").delete().eq("user_id", user_id).execute()
+        
+        # 2. Delete the user profile (business name)
         supabase.table("users").delete().eq("user_id", user_id).execute()
-        await update.message.reply_text("💥 **Business Deleted.** Profile reset. Use /start to begin again.", 
-                                       reply_markup=ReplyKeyboardMarkup([['/start']], resize_keyboard=True))
+        
+        # 3. Clear local bot memory
         context.user_data.clear()
-        return ConversationHandler.END
+        
+        await update.message.reply_text(
+            "💥 **Business & Data Reset Successfully!**\n\nLet's start fresh. What is your **new Business Name**? 🏢",
+            reply_markup=ReplyKeyboardMarkup([['❌ Cancel Flow']], resize_keyboard=True),
+            parse_mode="Markdown"
+        )
+        return SETUP_BIZ # Directly start the setup for the new business
     else:
-        await update.message.reply_text("❌ Verification failed. Deletion cancelled.", reply_markup=main_markup)
+        await update.message.reply_text(
+            "❌ Verification failed. Deletion cancelled.", 
+            reply_markup=main_markup
+        )
         return CHOOSING
 
 # --- EXPORT LOGIC ---
